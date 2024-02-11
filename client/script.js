@@ -126,7 +126,7 @@ $(function () {
 
   ////////////////////////////////////////////////////////////////
 
-  var AudioEngine = function () {};
+  var AudioEngine = function () { };
 
   AudioEngine.prototype.init = function (cb) {
     this.volume = 0.6;
@@ -135,11 +135,11 @@ $(function () {
     return this;
   };
 
-  AudioEngine.prototype.load = function (id, url, cb) {};
+  AudioEngine.prototype.load = function (id, url, cb) { };
 
-  AudioEngine.prototype.play = function () {};
+  AudioEngine.prototype.play = function () { };
 
-  AudioEngine.prototype.stop = function () {};
+  AudioEngine.prototype.stop = function () { };
 
   AudioEngine.prototype.setVolume = function (vol) {
     this.volume = vol;
@@ -337,7 +337,8 @@ $(function () {
 
   ////////////////////////////////////////////////////////////////
 
-  var Renderer = function () {};
+  var Renderer = function () {
+  };
 
   Renderer.prototype.init = function (piano) {
     this.piano = piano;
@@ -348,15 +349,103 @@ $(function () {
   Renderer.prototype.resize = function (width, height) {
     if (typeof width == "undefined") width = $(this.piano.rootElement).width();
     if (typeof height == "undefined") height = Math.floor(width * 0.2);
-    $(this.piano.rootElement).css({
-      height: height + "px",
-      marginTop: Math.floor($(window).height() / 2 - height / 2) + "px",
-    });
-    this.width = width * window.devicePixelRatio;
-    this.height = height * window.devicePixelRatio;
+    $(this.piano.rootElement).css({ "height": height + "px", marginTop: Math.floor($(window).height() / 2 - height / 2) + "px" });
+    this.width = width * devicePixelRatio;
+    this.height = height * devicePixelRatio;
   };
 
-  Renderer.prototype.visualize = function (key, color) {};
+  Renderer.prototype.visualize = function (key, color) {
+  };
+
+
+
+
+  var DOMRenderer = function () {
+    Renderer.call(this);
+  };
+
+  DOMRenderer.prototype = new Renderer();
+
+  DOMRenderer.prototype.init = function (piano) {
+    // create keys in dom
+    for (var i in piano.keys) {
+      if (!piano.keys.hasOwnProperty(i)) continue;
+      var key = piano.keys[i];
+      var ele = document.createElement("div");
+      key.domElement = ele;
+      piano.rootElement.appendChild(ele);
+      // "key sharp cs cs2"
+      ele.note = key.note;
+      ele.id = key.note;
+      ele.className = "key " + (key.sharp ? "sharp " : " ") + key.baseNote + " " + key.note + " loading";
+      var table = $('<table width="100%" height="100%" style="pointer-events:none"></table>');
+      var td = $('<td valign="bottom"></td>');
+      table.append(td);
+      td.valign = "bottom";
+      $(ele).append(table);
+    }
+    // add event listeners
+    var mouse_down = false;
+    $(piano.rootElement).mousedown(function (event) {
+      // todo: IE10 doesn't support the pointer-events css rule on the "blips"
+      var ele = event.target;
+      if ($(ele).hasClass("key") && piano.keys.hasOwnProperty(ele.note)) {
+        var key = piano.keys[ele.note];
+        press(key.note);
+        mouse_down = true;
+        event.stopPropagation();
+      };
+      //event.preventDefault();
+    });
+    piano.rootElement.addEventListener("touchstart", function (event) {
+      for (var i in event.changedTouches) {
+        var ele = event.changedTouches[i].target;
+        if ($(ele).hasClass("key") && piano.keys.hasOwnProperty(ele.note)) {
+          var key = piano.keys[ele.note];
+          press(key.note);
+          mouse_down = true;
+          event.stopPropagation();
+        }
+      }
+      //event.preventDefault();
+    }, false);
+    $(window).mouseup(function (event) {
+      mouse_down = false;
+    });
+    $(piano.rootElement).mouseover(function (event) {
+      if (!mouse_down) return;
+      var ele = event.target;
+      if ($(ele).hasClass("key") && piano.keys.hasOwnProperty(ele.note)) {
+        var key = piano.keys[ele.note];
+        press(key.note);
+      }
+    });
+
+    Renderer.prototype.init.call(this, piano);
+    return this;
+  };
+
+  DOMRenderer.prototype.resize = function (width, height) {
+    Renderer.prototype.resize.call(this, width, height);
+  };
+
+  DOMRenderer.prototype.visualize = function (key, color) {
+    var k = $(key.domElement);
+    k.addClass("play");
+    setTimeout(function () {
+      k.removeClass("play");
+    }, 100);
+    // "blips"
+    var d = $('<div style="width:100%;height:10%;margin:0;padding:0">&nbsp;</div>');
+    d.css("background", color);
+    k.find("td").append(d);
+    d.fadeOut(1000, function () {
+      d.remove();
+    });
+  };
+
+
+
 
   var CanvasRenderer = function () {
     Renderer.call(this);
@@ -385,7 +474,7 @@ $(function () {
     $(piano.rootElement).mousedown(function (event) {
       mouse_down = true;
       //event.stopPropagation();
-      if (!gNoPreventDefault) event.preventDefault();
+      event.preventDefault();
 
       var pos = CanvasRenderer.translateMouseEvent(event);
       var hit = self.getHit(pos.x, pos.y);
@@ -394,23 +483,19 @@ $(function () {
         last_key = hit.key;
       }
     });
-    piano.rootElement.addEventListener(
-      "touchstart",
-      function (event) {
-        mouse_down = true;
-        //event.stopPropagation();
-        if (!gNoPreventDefault) event.preventDefault();
-        for (var i in event.changedTouches) {
-          var pos = CanvasRenderer.translateMouseEvent(event.changedTouches[i]);
-          var hit = self.getHit(pos.x, pos.y);
-          if (hit) {
-            press(hit.key.note, hit.v);
-            last_key = hit.key;
-          }
+    piano.rootElement.addEventListener("touchstart", function (event) {
+      mouse_down = true;
+      //event.stopPropagation();
+      event.preventDefault();
+      for (var i in event.changedTouches) {
+        var pos = CanvasRenderer.translateMouseEvent(event.changedTouches[i]);
+        var hit = self.getHit(pos.x, pos.y);
+        if (hit) {
+          press(hit.key.note, hit.v);
+          last_key = hit.key;
         }
-      },
-      false,
-    );
+      }
+    }, false);
     $(window).mouseup(function (event) {
       if (last_key) {
         release(last_key.note);
@@ -434,47 +519,37 @@ $(function () {
   CanvasRenderer.prototype.resize = function (width, height) {
     Renderer.prototype.resize.call(this, width, height);
     if (this.width < 52 * 2) this.width = 52 * 2;
-    if (this.height < this.width * 0.2)
-      this.height = Math.floor(this.width * 0.2);
+    if (this.height < this.width * 0.2) this.height = Math.floor(this.width * 0.2);
     this.canvas.width = this.width;
     this.canvas.height = this.height;
-    this.canvas.style.width = this.width / window.devicePixelRatio + "px";
-    this.canvas.style.height = this.height / window.devicePixelRatio + "px";
+    this.canvas.style.width = this.width / devicePixelRatio + "px";
+    this.canvas.style.height = this.height / devicePixelRatio + "px";
 
     // calculate key sizes
     this.whiteKeyWidth = Math.floor(this.width / 52);
     this.whiteKeyHeight = Math.floor(this.height * 0.9);
-    this.blackKeyWidth = Math.floor(this.whiteKeyWidth * 0.75);
+    this.blackKeyWidth = Math.floor(this.whiteKeyWidth * 0.75) - 1;
     this.blackKeyHeight = Math.floor(this.height * 0.5);
 
-    this.blackKeyOffset = Math.floor(
-      this.whiteKeyWidth - this.blackKeyWidth / 2,
-    );
+    this.blackKeyOffset = Math.floor(this.whiteKeyWidth - (this.blackKeyWidth / 2));
     this.keyMovement = Math.floor(this.whiteKeyHeight * 0.015);
 
-    this.whiteBlipWidth = Math.floor(this.whiteKeyWidth * 0.7);
-    this.whiteBlipHeight = Math.floor(this.whiteBlipWidth * 0.8);
-    this.whiteBlipX = Math.floor(
-      (this.whiteKeyWidth - this.whiteBlipWidth) / 2,
-    );
-    this.whiteBlipY = Math.floor(
-      this.whiteKeyHeight - this.whiteBlipHeight * 1.2,
-    );
-    this.blackBlipWidth = Math.floor(this.blackKeyWidth * 0.7);
-    this.blackBlipHeight = Math.floor(this.blackBlipWidth * 0.8);
-    this.blackBlipY = Math.floor(
-      this.blackKeyHeight - this.blackBlipHeight * 1.2,
-    );
-    this.blackBlipX = Math.floor(
-      (this.blackKeyWidth - this.blackBlipWidth) / 2,
-    );
+    this.whiteBlipWidth = Math.floor(this.whiteKeyWidth - 3);
+    this.whiteBlipHeight = Math.floor(this.whiteBlipWidth * 0.7);
+    this.whiteBlipX = Math.floor((this.whiteKeyWidth - this.whiteBlipWidth) / 2);
+    this.whiteBlipY = Math.floor(this.whiteKeyHeight - this.whiteBlipHeight - 1);
+    this.blackBlipWidth = Math.floor(this.blackKeyWidth - 2);
+    this.blackBlipHeight = Math.floor(this.blackBlipWidth * 0.7);
+    this.blackBlipY = Math.floor(this.blackKeyHeight - this.blackBlipHeight - 1);
+    this.blackBlipX = Math.floor((this.blackKeyWidth - this.blackBlipWidth) / 2);
 
     // prerender white key
+    /*
     this.whiteKeyRender = document.createElement("canvas");
     this.whiteKeyRender.width = this.whiteKeyWidth;
     this.whiteKeyRender.height = this.height + 10;
     var ctx = this.whiteKeyRender.getContext("2d");
-    if (ctx.createLinearGradient) {
+    if(ctx.createLinearGradient) {
       var gradient = ctx.createLinearGradient(0, 0, 0, this.whiteKeyHeight);
       gradient.addColorStop(0, "#eee");
       gradient.addColorStop(0.75, "#fff");
@@ -487,26 +562,16 @@ $(function () {
     ctx.lineJoin = "round";
     ctx.lineCap = "round";
     ctx.lineWidth = 10;
-    ctx.strokeRect(
-      ctx.lineWidth / 2,
-      ctx.lineWidth / 2,
-      this.whiteKeyWidth - ctx.lineWidth,
-      this.whiteKeyHeight - ctx.lineWidth,
-    );
+    ctx.strokeRect(ctx.lineWidth / 2, ctx.lineWidth / 2, this.whiteKeyWidth - ctx.lineWidth, this.whiteKeyHeight - ctx.lineWidth);
     ctx.lineWidth = 4;
-    ctx.fillRect(
-      ctx.lineWidth / 2,
-      ctx.lineWidth / 2,
-      this.whiteKeyWidth - ctx.lineWidth,
-      this.whiteKeyHeight - ctx.lineWidth,
-    );
-
+    ctx.fillRect(ctx.lineWidth / 2, ctx.lineWidth / 2, this.whiteKeyWidth - ctx.lineWidth, this.whiteKeyHeight - ctx.lineWidth);
+    
     // prerender black key
     this.blackKeyRender = document.createElement("canvas");
     this.blackKeyRender.width = this.blackKeyWidth + 10;
     this.blackKeyRender.height = this.blackKeyHeight + 10;
     var ctx = this.blackKeyRender.getContext("2d");
-    if (ctx.createLinearGradient) {
+    if(ctx.createLinearGradient) {
       var gradient = ctx.createLinearGradient(0, 0, 0, this.blackKeyHeight);
       gradient.addColorStop(0, "#000");
       gradient.addColorStop(1, "#444");
@@ -518,20 +583,10 @@ $(function () {
     ctx.lineJoin = "round";
     ctx.lineCap = "round";
     ctx.lineWidth = 8;
-    ctx.strokeRect(
-      ctx.lineWidth / 2,
-      ctx.lineWidth / 2,
-      this.blackKeyWidth - ctx.lineWidth,
-      this.blackKeyHeight - ctx.lineWidth,
-    );
+    ctx.strokeRect(ctx.lineWidth / 2, ctx.lineWidth / 2, this.blackKeyWidth - ctx.lineWidth, this.blackKeyHeight - ctx.lineWidth);
     ctx.lineWidth = 4;
-    ctx.fillRect(
-      ctx.lineWidth / 2,
-      ctx.lineWidth / 2,
-      this.blackKeyWidth - ctx.lineWidth,
-      this.blackKeyHeight - ctx.lineWidth,
-    );
-
+    ctx.fillRect(ctx.lineWidth / 2, ctx.lineWidth / 2, this.blackKeyWidth - ctx.lineWidth, this.blackKeyHeight - ctx.lineWidth);
+    */
     // prerender shadows
     this.shadowRender = [];
     var y = -this.canvas.height * 2;
@@ -542,8 +597,8 @@ $(function () {
       canvas.height = this.canvas.height;
       var ctx = canvas.getContext("2d");
       var sharp = j ? true : false;
-      ctx.lineJoin = "round";
-      ctx.lineCap = "round";
+      ctx.lineJoin = "flat";
+      ctx.lineCap = "flat";
       ctx.lineWidth = 1;
       ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
       ctx.shadowBlur = this.keyMovement * 3;
@@ -560,50 +615,33 @@ $(function () {
         if (key.sharp != sharp) continue;
 
         if (key.sharp) {
-          ctx.fillRect(
-            this.blackKeyOffset +
-              this.whiteKeyWidth * key.spatial +
-              ctx.lineWidth / 2,
+          ctx.fillRect(this.blackKeyOffset + this.whiteKeyWidth * key.spatial + ctx.lineWidth / 2,
             y + ctx.lineWidth / 2,
-            this.blackKeyWidth - ctx.lineWidth,
-            this.blackKeyHeight - ctx.lineWidth,
-          );
+            this.blackKeyWidth - ctx.lineWidth, this.blackKeyHeight - ctx.lineWidth);
         } else {
-          ctx.fillRect(
-            this.whiteKeyWidth * key.spatial + ctx.lineWidth / 2,
+          ctx.fillRect(this.whiteKeyWidth * key.spatial + ctx.lineWidth / 2,
             y + ctx.lineWidth / 2,
-            this.whiteKeyWidth - ctx.lineWidth,
-            this.whiteKeyHeight - ctx.lineWidth,
-          );
+            this.whiteKeyWidth - ctx.lineWidth, this.whiteKeyHeight - ctx.lineWidth);
         }
       }
     }
-
     // update key rects
     for (var i in this.piano.keys) {
       if (!this.piano.keys.hasOwnProperty(i)) continue;
       var key = this.piano.keys[i];
       if (key.sharp) {
-        key.rect = new Rect(
-          this.blackKeyOffset + this.whiteKeyWidth * key.spatial,
-          0,
-          this.blackKeyWidth,
-          this.blackKeyHeight,
-        );
+        key.rect = new Rect(this.blackKeyOffset + this.whiteKeyWidth * key.spatial, 0,
+          this.blackKeyWidth, this.blackKeyHeight);
       } else {
-        key.rect = new Rect(
-          this.whiteKeyWidth * key.spatial,
-          0,
-          this.whiteKeyWidth,
-          this.whiteKeyHeight,
-        );
+        key.rect = new Rect(this.whiteKeyWidth * key.spatial, 0,
+          this.whiteKeyWidth, this.whiteKeyHeight);
       }
     }
   };
 
   CanvasRenderer.prototype.visualize = function (key, color) {
     key.timePlayed = Date.now();
-    key.blips.push({ time: key.timePlayed, color: color });
+    key.blips.push({ "time": key.timePlayed, "color": color });
   };
 
   CanvasRenderer.prototype.redraw = function () {
@@ -633,79 +671,14 @@ $(function () {
         }
         var y = 0;
         if (key.timePlayed > timePlayedEnd) {
-          y = Math.floor(
-            this.keyMovement -
-              ((now - key.timePlayed) / 100) * this.keyMovement,
-          );
+          y = Math.floor(this.keyMovement - (((now - key.timePlayed) / 100) * this.keyMovement));
         }
-        var x = Math.floor(
-          key.sharp
-            ? this.blackKeyOffset + this.whiteKeyWidth * key.spatial
-            : this.whiteKeyWidth * key.spatial,
-        );
-        var image = key.sharp ? this.blackKeyRender : this.whiteKeyRender;
-        this.ctx.drawImage(image, x, y);
-
-        var keyName = key.baseNote[0].toUpperCase();
-        if (sharp) keyName += "#";
-        keyName += key.octave + 1;
-
-        if (gShowPianoNotes) {
-          this.ctx.font = `${
-            (key.sharp ? this.blackKeyWidth : this.whiteKeyWidth) / 2
-          }px Arial`;
-          this.ctx.fillStyle = key.sharp ? "white" : "black";
-          this.ctx.textAlign = "center";
-
-          // do two passes to render both sharps and flat names.
-          if (keyName.includes("#")) {
-            this.ctx.fillText(
-              keyName,
-              x + (key.sharp ? this.blackKeyWidth : this.whiteKeyWidth) / 2,
-              y +
-                (key.sharp ? this.blackKeyHeight : this.whiteKeyHeight) -
-                30 -
-                this.ctx.lineWidth,
-            );
-          }
-
-          keyName = keyName.replace("C#", "D♭");
-          keyName = keyName.replace("D#", "E♭");
-          keyName = keyName.replace("F#", "G♭");
-          keyName = keyName.replace("G#", "A♭");
-          keyName = keyName.replace("A#", "B♭");
-
-          this.ctx.fillText(
-            keyName,
-            x + (key.sharp ? this.blackKeyWidth : this.whiteKeyWidth) / 2,
-            y +
-              (key.sharp ? this.blackKeyHeight : this.whiteKeyHeight) -
-              10 -
-              this.ctx.lineWidth,
-          );
-        }
-
-        const highlightScale = BASIC_PIANO_SCALES[gHighlightScaleNotes];
-        if (highlightScale && key.loaded) {
-          keyName = keyName.replace("C#", "D♭");
-          keyName = keyName.replace("D#", "E♭");
-          keyName = keyName.replace("F#", "G♭");
-          keyName = keyName.replace("G#", "A♭");
-          keyName = keyName.replace("A#", "B♭");
-          const keynameNoOctave = keyName.slice(0, -1);
-          if (highlightScale.includes(keynameNoOctave)) {
-            const prev = this.ctx.globalAlpha;
-            this.ctx.globalAlpha = 0.3;
-            this.ctx.fillStyle = "#0f0";
-            if (key.sharp) {
-              this.ctx.fillRect(x, y, this.blackKeyWidth, this.blackKeyHeight);
-            } else {
-              this.ctx.fillRect(x, y, this.whiteKeyWidth, this.whiteKeyHeight);
-            }
-            this.ctx.globalAlpha = prev;
-          }
-        }
-
+        var x = Math.floor(key.sharp ? this.blackKeyOffset + this.whiteKeyWidth * key.spatial
+          : this.whiteKeyWidth * key.spatial);
+        var clr = gPiano.color + 0x333333;
+        clr = clr > 0xFFFFFF ? 0xFFFFFF : clr;
+        this.ctx.fillStyle = sharp ? "#222222" : '#' + ('000000' + clr.toString(16)).slice(-6);
+        this.ctx.fillRect(x, y, sharp ? this.blackKeyWidth : this.whiteKeyWidth - 1, sharp ? this.blackKeyHeight : this.whiteKeyHeight);
         // render blips
         if (key.blips.length) {
           var alpha = this.ctx.globalAlpha;
@@ -725,32 +698,18 @@ $(function () {
             var blip = key.blips[b];
             if (blip.time > timeBlipEnd) {
               this.ctx.fillStyle = blip.color;
-              this.ctx.globalAlpha = alpha - ((now - blip.time) / 1000) * alpha;
+              this.ctx.globalAlpha = alpha - ((now - blip.time) / 1000);
               this.ctx.fillRect(x, y, w, h);
             } else {
               key.blips.splice(b, 1);
               --b;
             }
-            y -= Math.floor(h * 1.1);
+            y -= h + 1;
           }
         }
       }
     }
     this.ctx.restore();
-  };
-
-  CanvasRenderer.prototype.renderNoteLyrics = function () {
-    // render lyric
-    for (var part_id in this.noteLyrics) {
-      if (!this.noteLyrics.hasOwnProperty(i)) continue;
-      var lyric = this.noteLyrics[part_id];
-      var lyric_x = x;
-      var lyric_y = this.whiteKeyHeight + 1;
-      this.ctx.fillStyle = key.lyric.color;
-      var alpha = this.ctx.globalAlpha;
-      this.ctx.globalAlpha = alpha - ((now - key.lyric.time) / 1000) * alpha;
-      this.ctx.fillRect(x, y, 10, 10);
-    }
   };
 
   CanvasRenderer.prototype.getHit = function (x, y) {
@@ -765,12 +724,13 @@ $(function () {
           v += 0.25;
           v *= DEFAULT_VELOCITY;
           if (v > 1.0) v = 1.0;
-          return { key: key, v: v };
+          return { "key": key, "v": v };
         }
       }
     }
     return null;
   };
+
 
   CanvasRenderer.isSupported = function () {
     var canvas = document.createElement("canvas");
@@ -785,12 +745,13 @@ $(function () {
       if (!element) break; // wtf, wtf?
       offx += element.offsetLeft;
       offy += element.offsetTop;
-    } while ((element = element.offsetParent));
+    } while (element = element.offsetParent);
     return {
-      x: (evt.pageX - offx) * window.devicePixelRatio,
-      y: (evt.pageY - offy) * window.devicePixelRatio,
-    };
+      x: (evt.pageX - offx) * devicePixelRatio,
+      y: (evt.pageY - offy) * devicePixelRatio
+    }
   };
+
 
   // Soundpack Stuff by electrashave ♥
 
@@ -1238,9 +1199,9 @@ $(function () {
       if (count > 0) {
         $("#status").html(
           '<span class="number" translated>' +
-            count +
-            "</span> " +
-            window.i18nextify.i18next.t("people are playing", { count }),
+          count +
+          "</span> " +
+          window.i18nextify.i18next.t("people are playing", { count }),
         );
         if (!tabIsActive) {
           if (youreMentioned || youreReplied) {
@@ -1878,88 +1839,57 @@ $(function () {
     $("#cursors").removeAttr("smooth-cursors");
   }
 
-  // Background color
-  (function () {
-    var old_color1 = new Color("#000000");
-    var old_color2 = new Color("#000000");
-    function setColor(hex, hex2) {
-      var color1 = new Color(hex);
-      var color2 = new Color(hex2 || hex);
-      if (!hex2) color2.add(-0x40, -0x40, -0x40);
+	// Background color
+	(function() {
+		var old_color1 = new Color("#242464");
+		var old_color2 = new Color("#242464");
+		function setColor(hex) {
+			var color1 = new Color(hex);
+			var color2 = new Color(hex);
+			color2.add(-0x40, -0x40, -0x40);
 
-      var bottom = document.getElementById("bottom");
+			var bottom = document.getElementById("bottom");
+			
+			var duration = 500;
+			var step = 0;
+			var steps = 30;
+			var step_ms = duration / steps;
+			var difference = new Color(color1.r, color1.g, color1.b);
+			difference.r -= old_color1.r;
+			difference.g -= old_color1.g;
+			difference.b -= old_color1.b;
+			var inc = new Color(difference.r / steps, difference.g / steps, difference.b / steps);
+			var iv;
+			iv = setInterval(function() {
+				old_color1.add(inc.r, inc.g, inc.b);
+				old_color2.add(inc.r, inc.g, inc.b);
+				document.body.style.background = "radial-gradient(ellipse at center, "+old_color1.toHexa()+" 0%,"+old_color2.toHexa()+" 100%)";
+				bottom.style.background = old_color2.toHexa();
+				gPiano.color = +("0x" + old_color2.toHexa().slice(1));
+				//console.log("0x" + old_color2.toHexa().slice(1));
+				if(++step >= steps) {
+					clearInterval(iv);
+					old_color1 = color1;
+					old_color2 = color2;
+					document.body.style.background = "radial-gradient(ellipse at center, "+color1.toHexa()+" 0%,"+color2.toHexa()+" 100%)";
+					bottom.style.background = color2.toHexa();
+					gPiano.color = +("0x" + color2.toHexa().slice(1));
+				}
+			}, step_ms);
+		}
 
-      var duration = 500;
-      var step = 0;
-      var steps = 30;
-      var step_ms = duration / steps;
-      var difference = new Color(color1.r, color1.g, color1.b);
-      difference.r -= old_color1.r;
-      difference.g -= old_color1.g;
-      difference.b -= old_color1.b;
-      var inc1 = new Color(
-        difference.r / steps,
-        difference.g / steps,
-        difference.b / steps,
-      );
-      difference = new Color(color2.r, color2.g, color2.b);
-      difference.r -= old_color2.r;
-      difference.g -= old_color2.g;
-      difference.b -= old_color2.b;
-      var inc2 = new Color(
-        difference.r / steps,
-        difference.g / steps,
-        difference.b / steps,
-      );
-      var iv;
-      iv = setInterval(function () {
-        old_color1.add(inc1.r, inc1.g, inc1.b);
-        old_color2.add(inc2.r, inc2.g, inc2.b);
-        document.body.style.background =
-          "radial-gradient(ellipse at center, " +
-          old_color1.toHexa() +
-          " 0%," +
-          old_color2.toHexa() +
-          " 100%)";
-        bottom.style.background = old_color2.toHexa();
-        if (++step >= steps) {
-          clearInterval(iv);
-          old_color1 = color1;
-          old_color2 = color2;
-          document.body.style.background =
-            "radial-gradient(ellipse at center, " +
-            color1.toHexa() +
-            " 0%," +
-            color2.toHexa() +
-            " 100%)";
-          bottom.style.background = color2.toHexa();
-        }
-      }, step_ms);
-    }
+		setColor("#242464");
 
-    function setColorToDefault() {
-      setColor("#220022", "#000022");
-    }
-
-    window.setBackgroundColor = setColor;
-    window.setBackgroundColorToDefault = setColorToDefault;
-
-    setColorToDefault();
-
-    gClient.on("ch", function (ch) {
-      if (gNoBackgroundColor) {
-        setColorToDefault();
-        return;
-      }
-      if (ch.ch.settings) {
-        if (ch.ch.settings.color) {
-          setColor(ch.ch.settings.color, ch.ch.settings.color2);
-        } else {
-          setColorToDefault();
-        }
-      }
-    });
-  })();
+		gClient.on("ch", function(ch) {
+			if(ch.ch.settings) {
+				if(ch.ch.settings.color) {
+					setColor(ch.ch.settings.color);
+				} else {
+					setColor("#242464");
+				}
+			}
+		});
+	})();
 
   var volume_slider = document.getElementById("volume-slider");
   volume_slider.value = gPiano.audio.volume;
@@ -2655,7 +2585,7 @@ $(function () {
     }
     this.domElement = $(
       '<div class="notification"><div class="notification-body"><div class="title"></div>' +
-        '<div class="text"></div></div><div class="x" translated>X</div></div>',
+      '<div class="text"></div></div><div class="x" translated>X</div></div>',
     );
     this.domElement[0].id = this.id;
     this.domElement.addClass(this["class"]);
@@ -2739,9 +2669,9 @@ $(function () {
       gPiano.audio.setVolume(localStorage.volume);
       $("#volume-label").html(
         window.i18nextify.i18next.t("Volume") +
-          "<span translated>: " +
-          Math.floor(gPiano.audio.volume * 100) +
-          "%</span>",
+        "<span translated>: " +
+        Math.floor(gPiano.audio.volume * 100) +
+        "%</span>",
       );
     } else localStorage.volume = gPiano.audio.volume;
 
@@ -2782,8 +2712,8 @@ $(function () {
       var room = ls.u[i];
       var info = $(
         '#room .info[roomid="' +
-          (room.id + "").replace(/[\\"']/g, "\\$&").replace(/\u0000/g, "\\0") +
-          '"]',
+        (room.id + "").replace(/[\\"']/g, "\\$&").replace(/\u0000/g, "\\0") +
+        '"]',
       );
 
       if (info.length == 0) {
@@ -2797,10 +2727,10 @@ $(function () {
 
       info.text(
         room.count +
-          "/" +
-          ("limit" in room.settings ? room.settings.limit : 20) +
-          " " +
-          room._id,
+        "/" +
+        ("limit" in room.settings ? room.settings.limit : 20) +
+        " " +
+        room._id,
       );
       if (room.settings.lobby) info.addClass("lobby");
       else info.removeClass("lobby");
@@ -2884,8 +2814,8 @@ $(function () {
         $("#account #avatar-image").prop("src", gClient.accountInfo.avatar);
         $("#account #logged-in-user-text").text(
           gClient.accountInfo.username +
-            "#" +
-            gClient.accountInfo.discriminator,
+          "#" +
+          gClient.accountInfo.discriminator,
         );
       }
     } else {
@@ -3220,7 +3150,7 @@ $(function () {
         chat.hide();
       }
     });
-    gClient.on("disconnect", function (msg) {});
+    gClient.on("disconnect", function (msg) { });
     gClient.on("c", function (msg) {
       chat.clear();
       if (msg.c) {
@@ -3506,18 +3436,16 @@ $(function () {
           }
           if (repliedMsg) {
             li.find(".replyLink").text(
-              `➥ ${
-                repliedMsg.m === "dm"
-                  ? repliedMsg.sender.name
-                  : repliedMsg.p.name
+              `➥ ${repliedMsg.m === "dm"
+                ? repliedMsg.sender.name
+                : repliedMsg.p.name
               }`,
             );
             li.find(".replyLink").css({
-              background: `${
-                (repliedMsg?.m === "dm"
+              background: `${(repliedMsg?.m === "dm"
                   ? repliedMsg?.sender?.color
                   : repliedMsg?.p?.color) ?? "gray"
-              }`,
+                }`,
             });
             li.find(".replyLink").on("click", (evt) => {
               $("#chat-input").focus();
@@ -3525,16 +3453,14 @@ $(function () {
                 .getElementById(`msg-${repliedMsg?.id}`)
                 .scrollIntoView({ behavior: "smooth" });
               $(`#msg-${repliedMsg?.id}`).css({
-                border: `1px solid ${
-                  repliedMsg?.m === "dm"
+                border: `1px solid ${repliedMsg?.m === "dm"
                     ? repliedMsg.sender?.color
                     : repliedMsg.p?.color
-                }80`,
-                "background-color": `${
-                  repliedMsg?.m === "dm"
+                  }80`,
+                "background-color": `${repliedMsg?.m === "dm"
                     ? repliedMsg.sender?.color
                     : repliedMsg.p?.color
-                }20`,
+                  }20`,
               });
               setTimeout(() => {
                 $(`#msg-${repliedMsg?.id}`).css({
@@ -3689,12 +3615,10 @@ $(function () {
             MPP.chat.startReply(msg.p, msg.id, msg.a);
             setTimeout(() => {
               $(`#msg-${msg.id}`).css({
-                border: `1px solid ${
-                  msg?.m === "dm" ? msg.sender?.color : msg.p?.color
-                }80`,
-                "background-color": `${
-                  msg?.m === "dm" ? msg.sender?.color : msg.p?.color
-                }20`,
+                border: `1px solid ${msg?.m === "dm" ? msg.sender?.color : msg.p?.color
+                  }80`,
+                "background-color": `${msg?.m === "dm" ? msg.sender?.color : msg.p?.color
+                  }20`,
               });
             }, 100);
             setTimeout(() => {
@@ -3710,12 +3634,10 @@ $(function () {
                 MPP.chat.startDmReply(replyingTo, msg.id);
                 setTimeout(() => {
                   $(`#msg-${msg.id}`).css({
-                    border: `1px solid ${
-                      msg?.m === "dm" ? msg.sender?.color : msg.p?.color
-                    }80`,
-                    "background-color": `${
-                      msg?.m === "dm" ? msg.sender?.color : msg.p?.color
-                    }20`,
+                    border: `1px solid ${msg?.m === "dm" ? msg.sender?.color : msg.p?.color
+                      }80`,
+                    "background-color": `${msg?.m === "dm" ? msg.sender?.color : msg.p?.color
+                      }20`,
                   });
                 }, 100);
                 setTimeout(() => {
@@ -3820,11 +3742,11 @@ $(function () {
               // NOTE_OFF
               release(
                 MIDI_KEY_NAMES[
-                  note_number -
-                    9 +
-                    MIDI_TRANSPOSE +
-                    transpose +
-                    pitchBends[channel]
+                note_number -
+                9 +
+                MIDI_TRANSPOSE +
+                transpose +
+                pitchBends[channel]
                 ],
               );
             } else if (cmd == 9) {
@@ -3832,11 +3754,11 @@ $(function () {
               if (evt.target.volume !== undefined) vel *= evt.target.volume;
               press(
                 MIDI_KEY_NAMES[
-                  note_number -
-                    9 +
-                    MIDI_TRANSPOSE +
-                    transpose +
-                    pitchBends[channel]
+                note_number -
+                9 +
+                MIDI_TRANSPOSE +
+                transpose +
+                pitchBends[channel]
                 ],
                 vel / 127,
               );
