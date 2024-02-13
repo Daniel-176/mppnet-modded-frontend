@@ -1612,14 +1612,15 @@ $(function () {
       }
     });
     setInterval(() => {
-      $("#friends-list").html(`<p style="font-size:10px;">Loading ${gFriends.length} Friends</p>`);
       Object.keys(gFriends).forEach(async r => {
         const response = await fetch("https://api.daniel176.lol/getUserData?userId="+r);
         const data = await response.json();
         var friend = gFriends[r]
-        $("#friends-list").append(`
-          <div id="friend-${friend._id}" class="ugly-button" style="width:fit-content; display:block; background-color: ${data.requestedUserIsOnline ? data.user.color : friend.color};"><p class="nametext">${data.requestedUserIsOnline ? data.user.name : friend.name} <span id="online" style="color: red;">●</span></p></div>
-        `)
+        if($(`#friend-${friend._id}`).length < 1) {
+          $("#friends-list").append(`
+            <div id="friend-${friend._id}" class="ugly-button" style="width:fit-content; display:block; background-color: ${data.requestedUserIsOnline ? data.user.color : friend.color};"><p class="nametext">${data.requestedUserIsOnline ? data.user.name : friend.name} <span id="online" style="color: red;">●</span></p></div>
+          `)
+        }
         $(`#friend-${friend._id}`).click(() => {
           gClient.setChannel(data.user.roomsOnline[0])
         })
