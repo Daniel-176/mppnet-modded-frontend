@@ -1647,6 +1647,28 @@ $(function () {
       $("#token-add-name").val("")
       updatetokens()
     })
+    $("#token-logout").click(() => {
+      delete localStorage.token;
+      closeModal()
+      gClient.stop();
+      gClient.start();
+      updatetokens()
+    })
+    $("#token-this").click(() => {
+      $("#token-add-token").val(localStorage.token)
+    })
+    opeoeakew24 = false;
+    $("#token-changer summary").click(()=> {
+      if(opeoeakew24 == true) {
+        $("#token-changer").css("top", "50%")
+        $("#token-changer").css("height", "140px")
+        opeoeakew24 = false
+      } else {
+        $("#token-changer").css("top", "40%")
+        $("#token-changer").css("height", "240px")
+        opeoeakew24 = true
+      }
+    })
     $("#token-remove-selected").click(() => {
       var tokenbeingremoved = $("#token-selector").val()
       var tokens = JSON.parse(localStorage.tokens)

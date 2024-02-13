@@ -141,14 +141,20 @@
         <p id="motd-text"></p>
         <button class="submit">PLAY</button>
       </div>
-      <div id="token-changer" class="dialog">
+      <div id="token-changer" class="dialog" style="
+      top: 50%;
+      height: 140px;">
         <p>Token Changer</p>
-        <p><select name="token-selector" id="token-selector"></select><button id="token-remove-selected">Remove this Token</button></p>
-        <p>Add Token:<br></p>
-        <p style="font-size: small;"><label for="">Token Name: </label><input type="text" id="token-add-name"></p>
-        <p style="font-size: small;"><label for="">Token: </label><input type="text" id="token-add-token"></p>
-        <p><button id="token-add-btn">Add.</button></p>
+        <p><select name="token-selector" id="token-selector"></select> <button id="token-remove-selected">Remove this Token</button></p>
+        <details>
+          <summary class="dropdown" style="list-style: none;">Add Token: 🔽</summary>
+          <p style="font-size: small;"><label for="">Token Name: </label><input type="text" id="token-add-name"></p>
+          <p style="font-size: small;"><label for="">Token: </label><input type="text" id="token-add-token"> <button id="token-this">this</button></p>
+          <p><button id="token-add-btn">Add.</button></p>
+        </details>
+        <button class="leftsubmit" id="token-logout">Log-Out</button>
         <button class="submit">Log-In</button>
+
       </div>
       <div id="new-room" class="dialog">
         <p><input type="text" name="name" placeholder="room name" class="text" maxlength="512" /></p>
