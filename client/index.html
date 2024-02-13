@@ -6,7 +6,7 @@
   <title>Multiplayer Piano</title>
   <meta name="description"
     content="An online piano you can play alone or with others in real-time. MIDI support, 88 keys, velocity sensitive.  You can show off your skill or chat while listening to others play." />
-  <link rel="stylesheet" href="./screen.css?" />
+  <link rel="stylesheet" href="./screen.css?1" />
 </head>
 
 <body>
@@ -122,6 +122,7 @@
         <div id="getcrown-btn" class="ugly-button" style="display: none;">Get Crown</div>
         <div id="vanish-btn" class="ugly-button" style="display: none;">Vanish</div>
         <div id="token-changer-btn" class="ugly-button">Token Changer</div>
+        <div id="friends-btn" class="ugly-button">Friends</div>
       </div>
       <div id="status"></div>
       <div id="volume">
@@ -155,6 +156,14 @@
         <button class="leftsubmit" id="token-logout">Log-Out</button>
         <button class="submit">Log-In</button>
 
+      </div>
+      <div id="friends" class="dialog" style="
+      top: 45%;
+      height: 140px;">
+        <p>Friends</p>
+        <div id="friends-list">
+          <div class="name" style="background-color: brown;"><p class="nametext">Friend <span id="online" style="color: green;">●</span></p></div>
+        </div>
       </div>
       <div id="new-room" class="dialog">
         <p><input type="text" name="name" placeholder="room name" class="text" maxlength="512" /></p>
@@ -256,7 +265,7 @@
   <script src="./Color.js"></script>
   <!--<script src="/ebsprite.js"></script>-->
   <script src="https://unpkg.com/i18nextify@^3.2.1" id="i18nextify" fallbacklng="en"></script>
-  <script src="./script.js?"></script>
+  <script src="./script.js?1"></script>
 </body>
 
 </html>

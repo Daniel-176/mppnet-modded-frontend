@@ -70,7 +70,7 @@ table {
     width: calc(100% - 110px);
 }
 
-#names .name {
+#names .name, #friends-list .name {
     float: left;
     position: relative;
     padding: 4px;
@@ -156,6 +156,7 @@ table {
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 100%;
+    font-size: 12px;
 }
 
 input[type="range"] {

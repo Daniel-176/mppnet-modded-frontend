@@ -1611,6 +1611,31 @@ $(function () {
         $("#getcrown-btn").hide();
       }
     });
+    $("#friends-btn").click(async function (evt) {
+      const response = await fetch("http://127.0.0.1:8054/getRoomData");
+      const RoomData = await response.json();
+
+      Object.keys(RoomData.rooms).forEach(r => {
+        room = RoomData.rooms[r]
+        (RoomData.rooms[r].ppl).forEach(part => {
+          Object.keys(gFriends).forEach(i => {
+            var friend = gFriends[i]
+            if(part._id == friend._id) { 
+              $(`#friends-list #friend-${friend._id} #online`).css("color", "green")
+            }
+          })
+        })
+      });
+
+      $("#friends-list").html("")
+      Object.keys(gFriends).forEach(i => {
+        var friend = gFriends[i]
+        $("#friends-list").append(`
+          <div id="friend-${friend._id}" class="name" style="background-color: ${friend.color};"><p class="nametext">${friend.name} <span id="online" style="color: red;">●</span></p></div>
+        `)
+      })
+      openModal("#friends");
+    });
     function updatetokens() {
       var tokens = JSON.parse(localStorage.tokens);
       $("#token-changer #token-selector").html("")
@@ -1825,6 +1850,7 @@ $(function () {
   var gPianoMutes = (localStorage.pianoMutes ? localStorage.pianoMutes : "")
     .split(",")
     .filter((v) => v);
+  var gFriends = JSON.parse(localStorage.friends ? localStorage.friends : "{}")
   var gChatMutes = (localStorage.chatMutes ? localStorage.chatMutes : "")
     .split(",")
     .filter((v) => v);
@@ -2391,6 +2417,31 @@ $(function () {
               gPianoMutes.splice(i, 1);
             if (localStorage) localStorage.pianoMutes = gPianoMutes.join(",");
             $(part.nameDiv).removeClass("muted-notes");
+          });
+      }
+      if (!gFriends.hasOwnProperty(part._id)) {
+        $(
+          `<div class="menu-item">${window.i18nextify.i18next.t(
+            "Friend",
+          )}</div>`,
+        )
+          .appendTo(menu)
+          .on("mousedown touchstart", function (evt) {
+            gFriends[part._id] = (part);
+            if (localStorage) localStorage.friends = JSON.stringify(gFriends);
+            $(part.nameDiv).addClass("friends-with");
+          });
+      } else {
+        $(
+          `<div class="menu-item">${window.i18nextify.i18next.t(
+            "Unfriend",
+          )}</div>`,
+        )
+          .appendTo(menu)
+          .on("mousedown touchstart", function (evt) {
+            delete gFriends[part._id];
+            if (localStorage) localStorage.friends = JSON.stringify(gFriends);
+            $(part.nameDiv).removeClass("friends-with");
           });
       }
       if (gChatMutes.indexOf(part._id) == -1) {
