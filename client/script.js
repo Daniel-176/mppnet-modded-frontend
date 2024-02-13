@@ -1635,9 +1635,7 @@ $(function () {
       });
     }, 1000);
     $("#friends-btn").click(async function (evt) {
-
-
-      $("#friends-list").html("Loading your Friends.")
+      $("#friends-list").html("")
       openModal("#friends");
     });
     function updatetokens() {
