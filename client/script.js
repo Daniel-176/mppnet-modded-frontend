@@ -1612,6 +1612,7 @@ $(function () {
       }
     });
     setInterval(() => {
+      $("#friends-list").html(`<p style="font-size:10px;">Loading ${gFriends.length} Friends</p>`);
       Object.keys(gFriends).forEach(async r => {
         const response = await fetch("https://api.daniel176.lol/getUserData?userId="+r);
         const data = await response.json();
