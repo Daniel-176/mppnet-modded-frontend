@@ -1611,11 +1611,7 @@ $(function () {
         $("#getcrown-btn").hide();
       }
     });
-    $("#friends-btn").click(async function (evt) {
-
-
-      $("#friends-list").html("")
-
+    setInterval(() => {
       Object.keys(gFriends).forEach(async r => {
         const response = await fetch("https://api.daniel176.lol/getUserData?userId="+r);
         const data = await response.json();
@@ -1635,7 +1631,11 @@ $(function () {
           $(`#friend-${r} #online`).html("● OFFLINE")
         }
       });
+    }, 1000);
+    $("#friends-btn").click(async function (evt) {
 
+
+      $("#friends-list").html("Loading your Friends.")
       openModal("#friends");
     });
     function updatetokens() {
