@@ -1617,7 +1617,7 @@ $(function () {
       $("#friends-list").html("")
 
       Object.keys(gFriends).forEach(async r => {
-        const response = await fetch("http://api.daniel176.lol/getUserData?userId="+r);
+        const response = await fetch("https://api.daniel176.lol/getUserData?userId="+r);
         const data = await response.json();
         var friend = gFriends[r]
         $("#friends-list").append(`
