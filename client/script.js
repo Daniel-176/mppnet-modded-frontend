@@ -1611,6 +1611,50 @@ $(function () {
         $("#getcrown-btn").hide();
       }
     });
+    function updatetokens() {
+      var tokens = JSON.parse(localStorage.tokens);
+      $("#token-changer #token-selector").html("")
+      Object.keys(tokens).forEach(token => {
+        $("#token-changer #token-selector").append(`
+        <option value="${tokens[token]}">${token}</option>`)
+      })
+    }
+    $("#token-changer-btn").click(function (evt) {
+      if(!localStorage.tokens) {
+        localStorage.tokens = JSON.stringify(
+          {
+            "Token": localStorage.token
+          }
+        )
+      }
+      updatetokens()
+      openModal("#token-changer");
+    });
+    $("#token-changer .submit").click(function (evt) {
+      var tokenbeingset = $("#token-selector").val()
+      localStorage.token = tokenbeingset;
+      gClient.stop();
+      gClient.start();
+    });
+    $("#token-add-btn").click(() => {
+      var tokenbeingadded = $("#token-add-token").val()
+      var tokenbeingaddedname = $("#token-add-name").val()
+      var tokens = JSON.parse(localStorage.tokens)
+      tokens[tokenbeingaddedname] = tokenbeingadded;
+      localStorage.tokens = JSON.stringify(tokens)
+      $("#token-add-token").val("")
+      $("#token-add-name").val("")
+      updatetokens()
+    })
+    $("#token-remove-selected").click(() => {
+      var tokenbeingremoved = $("#token-selector").val()
+      var tokens = JSON.parse(localStorage.tokens)
+      delete tokens[tokenbeingremoved];
+      localStorage.tokens = JSON.stringify(tokens)
+      updatetokens()
+      $("#token-add-token").val("")
+      $("#token-add-name").val("")
+    })
     $("#room-settings-btn").click(function (evt) {
       if (
         gClient.channel &&

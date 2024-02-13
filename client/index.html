@@ -121,6 +121,7 @@
         <div id="clearchat-btn" class="ugly-button" style="display: none;">Clear Chat</div>
         <div id="getcrown-btn" class="ugly-button" style="display: none;">Get Crown</div>
         <div id="vanish-btn" class="ugly-button" style="display: none;">Vanish</div>
+        <div id="token-changer-btn" class="ugly-button">Token Changer</div>
       </div>
       <div id="status"></div>
       <div id="volume">
@@ -139,6 +140,15 @@
       <div id="motd" class="dialog">
         <p id="motd-text"></p>
         <button class="submit">PLAY</button>
+      </div>
+      <div id="token-changer" class="dialog">
+        <p>Token Changer</p>
+        <p><select name="token-selector" id="token-selector"></select><button id="token-remove-selected">Remove this Token</button></p>
+        <p>Add Token:<br></p>
+        <p style="font-size: small;"><label for="">Token Name: </label><input type="text" id="token-add-name"></p>
+        <p style="font-size: small;"><label for="">Token: </label><input type="text" id="token-add-token"></p>
+        <p><button id="token-add-btn">Add.</button></p>
+        <button class="submit">Log-In</button>
       </div>
       <div id="new-room" class="dialog">
         <p><input type="text" name="name" placeholder="room name" class="text" maxlength="512" /></p>
