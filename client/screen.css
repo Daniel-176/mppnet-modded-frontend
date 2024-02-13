@@ -159,6 +159,20 @@ table {
     font-size: 12px;
 }
 
+#friends-list {
+    overflow-y: scroll;
+    height: 70%;
+}
+
+#friends-list * {
+    font-size: 12px;
+    height: fit-content;
+}
+
+#friends-list .nametext {
+    margin:1px;
+}
+
 input[type="range"] {
         -webkit-appearance:     none;   /* Remove Safari default */
         outline: none;

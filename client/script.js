@@ -1612,28 +1612,30 @@ $(function () {
       }
     });
     $("#friends-btn").click(async function (evt) {
-      const response = await fetch("http://127.0.0.1:8054/getRoomData");
-      const RoomData = await response.json();
 
-      Object.keys(RoomData.rooms).forEach(r => {
-        room = RoomData.rooms[r]
-        (RoomData.rooms[r].ppl).forEach(part => {
-          Object.keys(gFriends).forEach(i => {
-            var friend = gFriends[i]
-            if(part._id == friend._id) { 
-              $(`#friends-list #friend-${friend._id} #online`).css("color", "green")
-            }
-          })
-        })
-      });
 
       $("#friends-list").html("")
-      Object.keys(gFriends).forEach(i => {
-        var friend = gFriends[i]
+
+      Object.keys(gFriends).forEach(async r => {
+        const response = await fetch("http://api.daniel176.lol/getUserData?userId="+r);
+        const data = await response.json();
+        var friend = gFriends[r]
         $("#friends-list").append(`
-          <div id="friend-${friend._id}" class="name" style="background-color: ${friend.color};"><p class="nametext">${friend.name} <span id="online" style="color: red;">●</span></p></div>
+          <div id="friend-${friend._id}" class="ugly-button" style="width:fit-content; display:block; background-color: ${data.requestedUserIsOnline ? data.user.color : friend.color};"><p class="nametext">${data.requestedUserIsOnline ? data.user.name : friend.name} <span id="online" style="color: red;">●</span></p></div>
         `)
-      })
+        $(`#friend-${friend._id}`).click(() => {
+          gClient.setChannel(data.user.roomsOnline[0])
+        })
+        if(data.requestedUserIsOnline) gFriends[r] =  data.user;
+        if(data.requestedUserIsOnline == true) {
+          $(`#friend-${r} #online`).css("color", "green")
+          $(`#friend-${r} #online`).html("● ONLINE")
+        } else {
+          $(`#friend-${r} #online`).css("color", "red")
+          $(`#friend-${r} #online`).html("● OFFLINE")
+        }
+      });
+
       openModal("#friends");
     });
     function updatetokens() {
