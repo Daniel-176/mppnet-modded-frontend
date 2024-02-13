@@ -161,7 +161,7 @@ table {
 
 #friends-list {
     overflow-y: scroll;
-    height: 70%;
+    height: 80%;
 }
 
 #friends-list * {
