@@ -1618,19 +1618,24 @@ $(function () {
         var friend = gFriends[r]
         if($(`#friend-${friend._id}`).length < 1) {
           $("#friends-list").append(`
-            <div id="friend-${friend._id}" class="ugly-button" style="width:fit-content; display:block; background-color: ${data.requestedUserIsOnline ? data.user.color : friend.color};"><p class="nametext">${data.requestedUserIsOnline ? data.user.name : friend.name} <span id="online" style="color: red;">●</span></p></div>
+            <div id="friend-${friend._id}" class="ugly-button" style="width:fit-content; display:block; background-color: ${data.requestedUserIsOnline ? data.user.color : friend.color};"><p class="nametext">${data.requestedUserIsOnline ? data.user.name : friend.name} <span id="online" style="color: red;">●</span></p><div id="roomsOnline"></div</div>
           `)
         }
-        $(`#friend-${friend._id}`).click(() => {
-          gClient.setChannel(data.user.roomsOnline[0])
-        })
+
         if(data.requestedUserIsOnline) gFriends[r] =  data.user;
         if(data.requestedUserIsOnline == true) {
           $(`#friend-${r} #online`).css("color", "green")
           $(`#friend-${r} #online`).html("● ONLINE")
+          data.user.roomsOnline.forEach(a => {
+            r = btoa(unescape(encodeURIComponent(a))).replaceAll("=","").replaceAll("/","")
+            if($(`#friend-${friend._id} #roomsOnline`).children().length > data.user.roomsOnline.length) $(`#friend-${friend._id} #roomsOnline`).html("");
+            if($(`#friend-${friend._id} #roomsOnline #userRoom-${r}`).length < 1)$(`#friend-${friend._id} #roomsOnline`).append(`<button id="userRoom-${r}" onclick="MPP.client.setChannel('${a}')">${a}</button>`)
+
+          })
         } else {
           $(`#friend-${r} #online`).css("color", "red")
           $(`#friend-${r} #online`).html("● OFFLINE")
+          $(`#friend-${friend._id} #roomsOnline`).html("")
         }
       });
     }, 1000);
