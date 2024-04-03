@@ -122,6 +122,46 @@ table {
     color: #f88;
 }
 
+#names .name.friends-with {
+    color: #8f8;
+}
+
+#names .name.dmIng {
+    color: rgb(136, 178, 255);
+}
+
+#names .name.dmIng:before {
+    content: "DM";
+    float: left;
+    position: relative;
+    padding: 4px;
+    margin-right: 5px;
+    border-radius: 2px;
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+    text-align: center;
+    background-color: #48a;
+    cursor: pointer;
+    font-size: 10px;
+    line-height: 7px;
+}
+
+#names .name.friends-with:before {
+    content: "FRIEND";
+    float: left;
+    position: relative;
+    padding: 4px;
+    margin-right: 5px;
+    border-radius: 2px;
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+    text-align: center;
+    background-color: #2f2;
+    cursor: pointer;
+    font-size: 10px;
+    line-height: 7px;
+}
+
 #names .name.muted-chat:after {
     content: "MUTE";
     position: absolute;
@@ -130,7 +170,7 @@ table {
     font-size: 8px;
 }
 
-.nametag {
+.nametag, .friendtag {
     float: left;
     position: relative;
     padding: 4px;
@@ -144,6 +184,16 @@ table {
     line-height: 7px;
 }
 
+
+.chattag {
+    width: fit-content;
+    margin-right: 4px;
+    background-color: #111;
+    text-shadow: none;
+    border-radius: 2px;
+    padding: 3px;
+    font-size: 10px;
+}
 
 
 .nametext {
