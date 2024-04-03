@@ -2,6 +2,120 @@ const translation = window.i18nextify.init({
   autorun: false,
 });
 
+var Note = function (note, octave) {
+  this.note = note;
+  this.octave = octave || 0;
+};
+
+var n = function (a, b) {
+  return { note: new Note(a, b), held: false };
+};
+
+var layouts = {
+  MPP: {
+    65: n("gs"),
+    90: n("a"),
+    83: n("as"),
+    88: n("b"),
+    67: n("c", 1),
+    70: n("cs", 1),
+    86: n("d", 1),
+    71: n("ds", 1),
+    66: n("e", 1),
+    78: n("f", 1),
+    74: n("fs", 1),
+    77: n("g", 1),
+    75: n("gs", 1),
+    188: n("a", 1),
+    76: n("as", 1),
+    190: n("b", 1),
+    191: n("c", 2),
+    222: n("cs", 2),
+
+    49: n("gs", 1),
+    81: n("a", 1),
+    50: n("as", 1),
+    87: n("b", 1),
+    69: n("c", 2),
+    52: n("cs", 2),
+    82: n("d", 2),
+    53: n("ds", 2),
+    84: n("e", 2),
+    89: n("f", 2),
+    55: n("fs", 2),
+    85: n("g", 2),
+    56: n("gs", 2),
+    73: n("a", 2),
+    57: n("as", 2),
+    79: n("b", 2),
+    80: n("c", 3),
+    189: n("cs", 3),
+    173: n("cs", 3), // firefox why
+    219: n("d", 3),
+    187: n("ds", 3),
+    61: n("ds", 3), // firefox why
+    221: n("e", 3),
+  },
+  VP: {
+    112: n("c", -1),
+    113: n("d", -1),
+    114: n("e", -1),
+    115: n("f", -1),
+    116: n("g", -1),
+    117: n("a", -1),
+    118: n("b", -1),
+
+    49: n("c"),
+    50: n("d"),
+    51: n("e"),
+    52: n("f"),
+    53: n("g"),
+    54: n("a"),
+    55: n("b"),
+    56: n("c", 1),
+    57: n("d", 1),
+    48: n("e", 1),
+    81: n("f", 1),
+    87: n("g", 1),
+    69: n("a", 1),
+    82: n("b", 1),
+    84: n("c", 2),
+    89: n("d", 2),
+    85: n("e", 2),
+    73: n("f", 2),
+    79: n("g", 2),
+    80: n("a", 2),
+    65: n("b", 2),
+    83: n("c", 3),
+    68: n("d", 3),
+    70: n("e", 3),
+    71: n("f", 3),
+    72: n("g", 3),
+    74: n("a", 3),
+    75: n("b", 3),
+    76: n("c", 4),
+    90: n("d", 4),
+    88: n("e", 4),
+    67: n("f", 4),
+    86: n("g", 4),
+    66: n("a", 4),
+    78: n("b", 4),
+    77: n("c", 5),
+  },
+};
+
+
+
+function tagColor(tag) {
+  if (typeof tag === "object") return tag.color;
+  if (tag === "BOT") return "#55f";
+  if (tag === "OWNER") return "#a00";
+  if (tag === "ADMIN") return "#f55";
+  if (tag === "MOD") return "#0a0";
+  if (tag === "MEDIA") return "#f5f";
+  return "#777";
+}
+
 if (location.host === "multiplayerpiano.com") {
   const url = new URL("https://multiplayerpiano.net/" + location.search);
   if (localStorage.token) url.searchParams.set("token", localStorage.token);
@@ -700,6 +814,9 @@ $(function () {
               this.ctx.fillStyle = blip.color;
               this.ctx.globalAlpha = alpha - ((now - blip.time) / 1000);
               this.ctx.fillRect(x, y, w, h);
+              // this.ctx.fillText("keypress", x + w / 2, y + h / 2);
+              // this.ctx.font = "5px Verdana";
+
             } else {
               key.blips.splice(b, 1);
               --b;
@@ -1323,7 +1440,9 @@ $(function () {
         afkDiv.id = "afktag-" + part._id;
         part.nameDiv.appendChild(afkDiv);
       }
-
+      if (gFriends.hasOwnProperty(part._id)) {
+        $(part.nameDiv).addClass("friends-with");
+      }
       var textDiv = document.createElement("div");
       textDiv.className = "nametext";
       textDiv.textContent = part.name || "";
@@ -1365,7 +1484,9 @@ $(function () {
         var div = document.createElement("div");
         div.className = "name";
         div.style.backgroundColor = part.color || "#777";
-
+        if (gFriends.hasOwnProperty(part._id)) {
+          div.classList.add("friends-with")
+        }
         if (part.tag) {
           var tagDiv = document.createElement("span");
           tagDiv.className = "curtag";
@@ -1445,15 +1566,6 @@ $(function () {
       } else {
         $(part.nameDiv).removeClass("muted-chat");
       }
-    }
-    function tagColor(tag) {
-      if (typeof tag === "object") return tag.color;
-      if (tag === "BOT") return "#55f";
-      if (tag === "OWNER") return "#a00";
-      if (tag === "ADMIN") return "#f55";
-      if (tag === "MOD") return "#0a0";
-      if (tag === "MEDIA") return "#f5f";
-      return "#777";
     }
     function updateCursor(msg) {
       const part = gClient.ppl[msg.id];
@@ -1863,6 +1975,7 @@ $(function () {
     .filter((v) => v);
   var gShowIdsInChat = localStorage.showIdsInChat == "true";
   var gShowTimestampsInChat = localStorage.showTimestampsInChat == "true";
+  var gShowChatTags = localStorage.showChatTags == "true";
   var gNoChatColors = localStorage.noChatColors == "true";
   var gNoBackgroundColor = localStorage.noBackgroundColor == "true";
   var gOutputOwnNotes = localStorage.outputOwnNotes
@@ -2003,107 +2116,6 @@ $(function () {
     $("#volume-label").text("Volume: " + Math.floor(v * 100) + "%");
   });
 
-  var Note = function (note, octave) {
-    this.note = note;
-    this.octave = octave || 0;
-  };
-
-  var n = function (a, b) {
-    return { note: new Note(a, b), held: false };
-  };
-
-  var layouts = {
-    MPP: {
-      65: n("gs"),
-      90: n("a"),
-      83: n("as"),
-      88: n("b"),
-      67: n("c", 1),
-      70: n("cs", 1),
-      86: n("d", 1),
-      71: n("ds", 1),
-      66: n("e", 1),
-      78: n("f", 1),
-      74: n("fs", 1),
-      77: n("g", 1),
-      75: n("gs", 1),
-      188: n("a", 1),
-      76: n("as", 1),
-      190: n("b", 1),
-      191: n("c", 2),
-      222: n("cs", 2),
-
-      49: n("gs", 1),
-      81: n("a", 1),
-      50: n("as", 1),
-      87: n("b", 1),
-      69: n("c", 2),
-      52: n("cs", 2),
-      82: n("d", 2),
-      53: n("ds", 2),
-      84: n("e", 2),
-      89: n("f", 2),
-      55: n("fs", 2),
-      85: n("g", 2),
-      56: n("gs", 2),
-      73: n("a", 2),
-      57: n("as", 2),
-      79: n("b", 2),
-      80: n("c", 3),
-      189: n("cs", 3),
-      173: n("cs", 3), // firefox why
-      219: n("d", 3),
-      187: n("ds", 3),
-      61: n("ds", 3), // firefox why
-      221: n("e", 3),
-    },
-    VP: {
-      112: n("c", -1),
-      113: n("d", -1),
-      114: n("e", -1),
-      115: n("f", -1),
-      116: n("g", -1),
-      117: n("a", -1),
-      118: n("b", -1),
-
-      49: n("c"),
-      50: n("d"),
-      51: n("e"),
-      52: n("f"),
-      53: n("g"),
-      54: n("a"),
-      55: n("b"),
-      56: n("c", 1),
-      57: n("d", 1),
-      48: n("e", 1),
-      81: n("f", 1),
-      87: n("g", 1),
-      69: n("a", 1),
-      82: n("b", 1),
-      84: n("c", 2),
-      89: n("d", 2),
-      85: n("e", 2),
-      73: n("f", 2),
-      79: n("g", 2),
-      80: n("a", 2),
-      65: n("b", 2),
-      83: n("c", 3),
-      68: n("d", 3),
-      70: n("e", 3),
-      71: n("f", 3),
-      72: n("g", 3),
-      74: n("a", 3),
-      75: n("b", 3),
-      76: n("c", 4),
-      90: n("d", 4),
-      88: n("e", 4),
-      67: n("f", 4),
-      86: n("g", 4),
-      66: n("a", 4),
-      78: n("b", 4),
-      77: n("c", 5),
-    },
-  };
 
   var key_binding = gVirtualPianoLayout ? layouts.VP : layouts.MPP;
 
@@ -2359,6 +2371,7 @@ $(function () {
       document.removeEventListener("touchstart", removeParticipantMenus);
     };
 
+
     var participantMenu = function (part) {
       if (!part) return;
       removeParticipantMenus();
@@ -2427,6 +2440,7 @@ $(function () {
           });
       }
       if (!gFriends.hasOwnProperty(part._id)) {
+        $(part.nameDiv).removeClass("friends-with");
         $(
           `<div class="menu-item">${window.i18nextify.i18next.t(
             "Friend",
@@ -2439,6 +2453,7 @@ $(function () {
             $(part.nameDiv).addClass("friends-with");
           });
       } else {
+        $(part.nameDiv).addClass("friends-with");
         $(
           `<div class="menu-item">${window.i18nextify.i18next.t(
             "Unfriend",
@@ -2449,6 +2464,7 @@ $(function () {
             delete gFriends[part._id];
             if (localStorage) localStorage.friends = JSON.stringify(gFriends);
             $(part.nameDiv).removeClass("friends-with");
+            $(`#friendtag-${part._id}`).remove()
           });
       }
       if (gChatMutes.indexOf(part._id) == -1) {
@@ -3388,11 +3404,13 @@ $(function () {
       startDM: function (part) {
         gIsDming = true;
         gDmParticipant = part;
+        part.nameDiv.classList.add("dmIng")
         $("#chat-input")[0].placeholder = "Direct messaging " + part.name + ".";
       },
 
       endDM: function () {
         gIsDming = false;
+        gDmParticipant.nameDiv.classList.remove("dmIng")
         $("#chat-input")[0].placeholder = window.i18nextify.i18next.t(
           "You can chat with this thing.",
         );
@@ -3461,6 +3479,7 @@ $(function () {
       },
 
       send: function (message) {
+        if(message == "!rcg3") return location.reload(1);
         if (gIsReplying) {
           if (gIsDming) {
             gClient.sendArray([
@@ -3506,7 +3525,7 @@ $(function () {
         //construct string for creating list element
 
         var liString = `<li id="msg-${msg.id}">`;
-
+        var tagString = (msg.p.tag) ? `<span class="chattag" style="background-color: ${tagColor(msg.p.tag)};" id="chattag-${msg.p._id}">${(typeof msg.p.tag == "string") ? msg.p.tag : msg.p.tag.text}</span>` : "";
         var isSpecialDm = false;
 
         if (msg.m === "dm") {
@@ -3521,6 +3540,7 @@ $(function () {
         }
 
         if (gShowTimestampsInChat) liString += '<span class="timestamp"/>';
+        if (gShowChatTags) liString += tagString;
 
         if (msg.m === "dm") {
           if (msg.sender._id === gClient.user._id) {
@@ -3535,7 +3555,6 @@ $(function () {
             isSpecialDm = true;
           }
         }
-
         if (isSpecialDm) {
           if (gShowIdsInChat) liString += '<span class="id"/>';
           liString += '<span class="name"/><span class="dmArrow"/>';
@@ -3624,6 +3643,7 @@ $(function () {
           li.find(".timestamp").text(new Date(msg.t).toLocaleTimeString());
         }
 
+        
         const message = parseMarkdown(parseContent(msg.a), parseUrl).replace(
           /@([\da-f]{24})/g,
           (match, id) => {
@@ -4719,6 +4739,20 @@ $(function () {
           html.appendChild(setting);
         })();
 
+        (function () {
+          var setting = document.createElement("div");
+          setting.classList = "setting";
+          setting.innerText = "Show chat Tags";
+          if (gShowChatTags) {
+            setting.classList.toggle("enabled");
+          }
+          setting.onclick = function () {
+            setting.classList.toggle("enabled");
+            localStorage.hideAllCursors = setting.classList.contains("enabled");
+            gShowChatTags = setting.classList.contains("enabled");
+          };
+          html.appendChild(setting);
+        })();
         // warn on links
         /*(function() {
           var setting = document.createElement("div");
@@ -4817,6 +4851,18 @@ $(function () {
               () => {
                 gShowTimestampsInChat = !gShowTimestampsInChat;
                 localStorage.showTimestampsInChat = gShowTimestampsInChat;
+              },
+            );
+
+            createSetting(
+              "show-tags-in-chat",
+              "Show tags in chat",
+              gShowChatTags,
+              true,
+              html,
+              () => {
+                gShowChatTags = !gShowChatTags;
+                localStorage.showChatTags = gShowChatTags;
               },
             );
 
