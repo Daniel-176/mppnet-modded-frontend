@@ -135,6 +135,7 @@ table {
     float: left;
     position: relative;
     padding: 4px;
+    top:0;
     margin-right: 5px;
     border-radius: 2px;
     -webkit-border-radius: 2px;
@@ -153,6 +154,7 @@ table {
     padding: 4px;
     margin-right: 5px;
     border-radius: 2px;
+    top:0;
     -webkit-border-radius: 2px;
     -moz-border-radius: 2px;
     text-align: center;
