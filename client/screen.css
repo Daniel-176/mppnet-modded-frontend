@@ -630,14 +630,12 @@ input[type="range"]:hover {
 .ugly-button {
     height: 12px;
     font-size: 12px;
-    background: #111;
+    background: #000000;
     border: 1px solid #444;
     padding: 5px;
     cursor: pointer;
     line-height: 12px;
-    border-radius: 2px;
-    -webkit-border-radius: 2px;
-    -moz-border-radius: 2px;
+    border-radius: 5px;
     overflow: hidden;
     white-space: nowrap;
 }
@@ -700,7 +698,7 @@ input[type="range"]:hover {
     height: 20px;
     padding: 5px;
     font-size: 20px;
-    font-weight: 800;
+    font-weight: 100;
     line-height: 20px;
     pointer-events: none;
 }
@@ -1183,7 +1181,7 @@ input[type="range"]:hover {
     margin-right: 4px;
     padding-inline: 5px;
     background-color: #111;
-    border: 1px solid #444;
+    border: 1px solid #4b4b4b;
     text-shadow: none;
     border-radius: 2px;
     -webkit-border-radius: 2px;
@@ -1264,9 +1262,9 @@ input[type="range"]:hover {
 #chat input {
     margin: 4px;
     width: 99%;
-    border: 1px solid #fff;
+    border: 1px solid #ffffff00;
     background: 0 0;
-    text-shadow: #888 1px 1px;
+    background-color: #555555;
     color: #fff;
     border-radius: 4px;
     -webkit-border-radius: 4px;
@@ -1283,13 +1281,14 @@ input[type="range"]:hover {
 
 #chat input:focus {
     outline: 0;
-    border: 1px solid #ff8;
+    border: 1px solid rgb(0, 217, 255);
+    transition: all .4s;
 }
 
 #chat.chatting {
-    background: rgba(64, 80, 80, .75);
+    background: rgba(0, 0, 0, 0.342);
     border-radius: 5px;
-    box-shadow: 1px 1px 5px #888;
+    border: 1px solid #ffffff8c;
     transition: all .1s;
 }
 
