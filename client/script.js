@@ -3525,7 +3525,13 @@ $(function () {
         //construct string for creating list element
 
         var liString = `<li id="msg-${msg.id}">`;
-        var tagString = (msg.p.tag) ? `<span class="chattag" style="background-color: ${tagColor(msg.p.tag)};" id="chattag-${msg.p._id}">${(typeof msg.p.tag == "string") ? msg.p.tag : msg.p.tag.text}</span>` : "";
+        var tagString = ``;
+        try {
+          tagString = (msg.p.tag) ? `<span class="chattag" style="background-color: ${tagColor(msg.p.tag)};" id="chattag-${msg.p._id}">${(typeof msg.p.tag == "string") ? msg.p.tag : msg.p.tag.text}</span>` : "";
+        } catch(e) {
+          tagString = ``;
+          console.log(e)
+        }
         var isSpecialDm = false;
 
         if (msg.m === "dm") {
