@@ -6,7 +6,7 @@ var Note = function (note, octave) {
   this.note = note;
   this.octave = octave || 0;
 };
-
+///////////////////
 var n = function (a, b) {
   return { note: new Note(a, b), held: false };
 };
