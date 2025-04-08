@@ -1725,7 +1725,7 @@ $(function () {
     });
     setInterval(() => {
       Object.keys(gFriends).forEach(async r => {
-        const response = await fetch("https://api.daniel176.lol/getUserData?userId="+r);
+        const response = await fetch("https://api.daniel176.xyz/getUserData?userId="+r);
         const data = await response.json();
         var friend = gFriends[r]
         if($(`#friend-${friend._id}`).length < 1) {
